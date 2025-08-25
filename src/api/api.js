@@ -2,7 +2,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://api.osonishtop.uz", // o'zingning backend manzilingni qo'y
+  baseURL: "https://api.osonishtop.uz", //
   headers: {
     "Content-Type": "application/json",
   },

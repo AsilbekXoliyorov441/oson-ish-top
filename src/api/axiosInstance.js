@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL, // endi /api
+  baseURL: "https://api.osonishtop.uz", // endi /api
   withCredentials: false,
 });
 
