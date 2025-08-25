@@ -40,7 +40,7 @@ const AreaFormModal = ({
 
   return (
     <div
-      className="fixed inset-0 bg-black/10  backdrop-blur-sm flex items-center justify-center z-50"
+      className="fixed inset-0 bg-black/10 px-[20px]  backdrop-blur-sm flex items-center justify-center z-50"
       onClick={handleBackdropClick}
     >
       <div

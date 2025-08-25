@@ -12,6 +12,10 @@ import CategoryPage from "./pages/categories";
 import InnerCategoriesPage from "./pages/inner-category";
 import JobTypes from "./pages/job-types";
 import AdsPage from "./pages/adds";
+import UsersPage from "./pages/users";
+import UserPage from "./pages/single-user";
+import AnnouncementsPage from "./pages/announcement-filters";
+import AnnFilterDetail from "./pages/announcement-filters-detail";
 
 function App() {
   return (
@@ -39,8 +43,14 @@ function App() {
           <Route path="job-types" element={<JobTypes />} />
           <Route path="advertisement" element={<AdsPage />} />
           <Route path="announcement" element={<AnnouncementTypes />} />
-          <Route path="ann-discount" element={<AnnouncementDiscount />} />
+          <Route path="announcement/:id" element={<AnnouncementDiscount />} />
           <Route path="categories" element={<CategoryPage />} />
+          <Route path="users" element={<UsersPage />} />
+          <Route path="users/:usersId" element={<UserPage />} />
+          <Route path="ann-filters" element={<AnnouncementsPage />} />
+          <Route path="ann-filters/:id" element={<AnnFilterDetail />} />
+
+          {/* Public */}
           <Route
             path="categories/:categoryId"
             element={<InnerCategoriesPage />}

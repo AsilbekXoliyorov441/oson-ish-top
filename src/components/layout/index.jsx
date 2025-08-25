@@ -21,12 +21,12 @@ export default function Layout() {
   return (
     <>
       <Header />
-      <main className="flex h-[calc(100vh-60px)]">
+      <main className="flex res">
         {" "}
         {/* Header balandligi ayirildi */}
         {/* Aside */}
         <div
-          className={`fixed top-[70px] sm:relative bg-white border-r border-gray-200 transition-all duration-300 flex flex-col ${
+          className={`fixed z-[1] top-[70px] sm:relative bg-white border-r border-gray-200 transition-all duration-300 flex flex-col ${
             open ? "w-[64px]" : "w-[240px]"
           }`}
         >
@@ -41,7 +41,7 @@ export default function Layout() {
           <Aside open={open} />
         </div>
         {/* Main content */}
-        <div className="flex-1 pl-[78px] mt-[72px] res sm:pl-3 bg-gray-100 overflow-auto p-3 md:p-5">
+        <div className="flex-1 pl-[78px] res mt-[72px]  sm:pl-3 bg-gray-100 overflow-auto p-3 md:p-5">
           <Outlet />
         </div>
       </main>

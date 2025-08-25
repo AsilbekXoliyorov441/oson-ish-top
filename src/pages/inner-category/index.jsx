@@ -9,6 +9,7 @@ import InnerCategoryTable from "./components/innerCategoryTable";
 import { GrFormNextLink, GrFormPreviousLink } from "react-icons/gr";
 import { FaWifi } from "react-icons/fa6";
 import { FaSync } from "react-icons/fa";
+import { IoSearch } from "react-icons/io5";
 
 const getInnerCategories = async ({ queryKey }) => {
   const [, { parentId, page, size, search }] = queryKey;
@@ -164,7 +165,7 @@ const InnerCategoriesPage = () => {
   return (
     <div className="bg-white overflow-hidden rounded-xl p-4">
       {/* Top controls */}
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex gap-[20px] justify-between items-center mb-4">
         <div className="flex w-full sm:w-auto">
           <input
             type="search"
@@ -180,7 +181,7 @@ const InnerCategoriesPage = () => {
               setSearchQuery(searchTerm.trim());
             }}
           >
-            Qidirish
+            <IoSearch size={20} />
           </button>
         </div>
 
@@ -188,7 +189,8 @@ const InnerCategoriesPage = () => {
           onClick={openAddModal}
           className="bg-blue-500 cursor-pointer text-white px-5 py-2 rounded-lg hover:bg-blue-600"
         >
-          Qo‘shish
+          <span className="hidden sm:flex">Qo‘shish</span>
+          <span className="sm:hidden text-[18px]">+</span>
         </button>
       </div>
 

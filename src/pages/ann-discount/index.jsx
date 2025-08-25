@@ -1,5 +1,6 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link, useParams } from "react-router-dom";
 import { FiEdit } from "react-icons/fi";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import axiosInstance from "../../api/axiosInstance";
@@ -18,28 +19,32 @@ const fetchAnnTypes = async () => {
 
 const fetchAnnDiscounts = async ({ queryKey }) => {
   const [_key, { page, size, annTypesId }] = queryKey;
-  const res = await axiosInstance.get("/ann-discounts/read", {
-    params: { page, size, annTypesId: annTypesId || undefined },
-  });
+
+  const params = { page, size };
+  if (annTypesId) params.annTypesId = annTypesId; // faqat path orqali olingan ID
+
+  const res = await axiosInstance.get("/ann-discounts/read", { params });
   return res.data.data;
 };
 
 const AnnouncementDiscount = () => {
+  const { id: annTypeId } = useParams(); // path: /ann-discounts/:annTypeId
+  const annTypeIdNum = Number(annTypeId);
+
   const [page, setPage] = useState(1);
   const [size] = useState(10);
-  const [annTypesId, setAnnTypesId] = useState(0);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     id: null,
-    annTypesId: 0,
+    annTypesId: annTypeIdNum,
     fixedDay: "",
     discount: "",
   });
   const [deleteId, setDeleteId] = useState(null);
-  const [loadingId, setLoadingId] = useState(null); // faqat bitta qatorda loader
+  const [loadingId, setLoadingId] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -48,13 +53,16 @@ const AnnouncementDiscount = () => {
     queryFn: fetchAnnTypes,
   });
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["annDiscounts", { page, size, annTypesId }],
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: ["annDiscounts", { page, size, annTypesId: annTypeIdNum }],
     queryFn: fetchAnnDiscounts,
     keepPreviousData: true,
   });
 
-  const discounts = data?.content || [];
+  // 🔹 Chegirmalarni discount bo‘yicha o‘sish tartibida sort qilish
+  const discounts = (data?.content || []).sort(
+    (a, b) => a.discount - b.discount
+  );
   const totalPages = data?.totalPages || 0;
 
   const createMutation = useMutation({
@@ -62,18 +70,9 @@ const AnnouncementDiscount = () => {
       setLoadingId("new");
       return axiosInstance.post("/ann-discounts/create", newData);
     },
-    onSuccess: (res) => {
+    onSuccess: () => {
       toast.success("Chegirma qo‘shildi");
-      queryClient.setQueryData(
-        ["annDiscounts", { page, size, annTypesId }],
-        (oldData) => {
-          if (!oldData) return oldData;
-          return {
-            ...oldData,
-            content: [res.data.data, ...oldData.content],
-          };
-        }
-      );
+      queryClient.invalidateQueries(["annDiscounts"]);
       setModalOpen(false);
       setLoadingId(null);
     },
@@ -121,7 +120,12 @@ const AnnouncementDiscount = () => {
   });
 
   const openAddModal = () => {
-    setFormData({ id: null, annTypesId: 0, fixedDay: "", discount: "" });
+    setFormData({
+      id: null,
+      annTypesId: annTypeIdNum,
+      fixedDay: "",
+      discount: "",
+    });
     setModalOpen(true);
   };
 
@@ -152,22 +156,6 @@ const AnnouncementDiscount = () => {
     deleteMutation.mutate(deleteId);
   };
 
-  const modalRef = useRef();
-  const deleteModalRef = useRef();
-
-  const handleBackdropClick = (e, ref, closeFn) => {
-    if (ref.current && !ref.current.contains(e.target)) {
-      closeFn(false);
-    }
-  };
-
-  const typeColors = {
-    1: "bg-blue-100 text-blue-800",
-    2: "bg-green-100 text-green-800",
-    3: "bg-yellow-100 text-yellow-800",
-    default: "bg-gray-100 text-gray-800",
-  };
-
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -175,56 +163,48 @@ const AnnouncementDiscount = () => {
       </div>
     );
   }
-    if (isError) {
-      return (
-        <div className="flex flex-col items-center justify-center text-center p-6 h-[80vh]">
-          <div className="bg-red-100 text-red-600 p-6 rounded-full shadow-lg mb-4">
-            <FaWifi size={48} />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">
-            Oops! Xatolik yuz berdi
-          </h2>
-          <p className="text-gray-600 mb-6 max-w-md">
-            Iltimos, birozdan so‘ng qayta urinib ko‘ring.
-          </p>
-          <button
-            onClick={() => refetch()} // qayta so‘rov yuborish uchun (React Query bo‘lsa)
-            className="flex items-center gap-2 bg-red-500 text-white px-6 py-2 rounded-xl shadow hover:bg-red-600 transition"
-          >
-            <FaSync className="animate-spin-slow" />
-            Qayta urinib ko‘rish
-          </button>
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center text-center p-6 h-[80vh]">
+        <div className="bg-red-100 text-red-600 p-6 rounded-full shadow-lg mb-4">
+          <FaWifi size={48} />
         </div>
-      );
-    }
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">
+          Oops! Xatolik yuz berdi
+        </h2>
+        <p className="text-gray-600 mb-6 max-w-md">
+          Iltimos, birozdan so‘ng qayta urinib ko‘ring.
+        </p>
+        <button
+          onClick={() => refetch()}
+          className="flex items-center gap-2 bg-red-500 text-white px-6 py-2 rounded-xl shadow hover:bg-red-600 transition"
+        >
+          <FaSync className="animate-spin-slow" />
+          Qayta urinib ko‘rish
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 bg-white rounded-xl shadow-md">
-      {/* Filter va tugma */}
       <div className="flex justify-between mb-4">
-        <h2 className="text-lg font-semibold">E’lon chegirmalari</h2>
-        <div className="flex items-start gap-[10px]">
-          <select
-            value={annTypesId}
-            onChange={(e) => {
-              setAnnTypesId(Number(e.target.value));
-              setPage(1);
-            }}
-            className="border-none outline-none shadow-sm bg-white px-3 py-2 rounded mb-4 w-full sm:w-64 border cursor-pointer"
+        <div className="flex flex-col md:flex-row md:items-center md:gap-2">
+          <Link
+            to={"../announcement"}
+            className="sm:text-lg text-blue-500 underline font-semibold"
           >
-            <option value={0}>Barcha turlar</option>
-            {annTypes.map((type) => (
-              <option key={type.id} value={type.id}>
-                {type.nameUz}
-              </option>
-            ))}
-          </select>
-          <button
-            onClick={openAddModal}
-            className="bg-blue-500 text-white max-w-[500px] sm:w-auto w-full cursor-pointer px-5 py-2 rounded-lg hover:bg-blue-600 active:scale-95 transition transform shadow-md"
-          >
-            Chegirma qo‘shish
-          </button>
+            E’lon tavsiflar
+          </Link>
+          <h2 className="sm:text-lg font-semibold">E’lon chegirmalari</h2>
         </div>
+        <button
+          onClick={openAddModal}
+          className="bg-blue-500 px-4 whitespace-nowrap flex justify-center py-2 items-center gap-2 text-white w-auto cursor-pointer rounded-lg hover:bg-blue-600 active:scale-95 transition transform shadow-md"
+        >
+          Chegirma <span className="hidden sm:block"> qo‘shish</span>
+        </button>
       </div>
 
       <AnnouncementDiscountTable
@@ -233,7 +213,7 @@ const AnnouncementDiscount = () => {
         page={page}
         size={size}
         loadingId={loadingId}
-        edit={<FiEdit size={20}/>}
+        edit={<FiEdit size={20} />}
         delate={<RiDeleteBin6Line size={20} />}
         onEdit={openEditModal}
         onDelete={(id) => {
@@ -265,7 +245,6 @@ const AnnouncementDiscount = () => {
         </div>
       )}
 
-      {/* Modal */}
       {modalOpen && (
         <AddEditDiscountModal
           annTypes={annTypes}

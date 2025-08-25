@@ -4,10 +4,11 @@ import axiosInstance from "../../api/axiosInstance";
 import { toast } from "react-toastify";
 import JobTypeFormModal from "./components/JobTypeFormModal";
 import DeleteModal from "./components/DeleteModal";
-import { FiEdit } from "react-icons/fi";
+import { FiEdit, FiEye } from "react-icons/fi";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import { FaWifi } from "react-icons/fa6";
 import { FaSync } from "react-icons/fa";
+import { BsThreeDotsVertical } from "react-icons/bs";
 
 // API funksiyalar
 const getJobTypes = async () => {
@@ -37,16 +38,19 @@ const JobTypesPage = () => {
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+
   const [editingId, setEditingId] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null); // faqat bitta qator menyusini ochish uchun
 
   // Fetch
   const {
     data: jobTypes = [],
     isLoading,
     isError,
-    error,
-    refetch
+    refetch,
   } = useQuery({
     queryKey: ["jobTypes"],
     queryFn: getJobTypes,
@@ -114,6 +118,13 @@ const JobTypesPage = () => {
   const handleDelete = (id) => {
     setDeleteId(id);
     setIsDeleteModalOpen(true);
+    setOpenMenuId(null); // menyuni yopish
+  };
+
+  const handleView = (item) => {
+    setSelectedItem(item);
+    setIsViewModalOpen(true);
+    setOpenMenuId(null); // menyuni yopish
   };
 
   const handleSubmit = () => {
@@ -146,26 +157,24 @@ const JobTypesPage = () => {
           <div className="w-8 h-8 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
         </div>
       ) : isError ? (
-        
-             <div className="flex flex-col items-center justify-center text-center p-6 h-[80vh]">
-               <div className="bg-red-100 text-red-600 p-6 rounded-full shadow-lg mb-4">
-                 <FaWifi size={48} />
-               </div>
-               <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                 Oops! Xatolik yuz berdi
-               </h2>
-               <p className="text-gray-600 mb-6 max-w-md">
-                 Iltimos, birozdan so‘ng qayta urinib ko‘ring.
-               </p>
-               <button
-                 onClick={() => refetch()} // qayta so‘rov yuborish uchun (React Query bo‘lsa)
-                 className="flex items-center gap-2 bg-red-500 text-white px-6 py-2 rounded-xl shadow hover:bg-red-600 transition"
-               >
-                 <FaSync className="animate-spin-slow" />
-                 Qayta urinib ko‘rish
-               </button>
-             </div>
-           
+        <div className="flex flex-col items-center justify-center text-center p-6 h-[80vh]">
+          <div className="bg-red-100 text-red-600 p-6 rounded-full shadow-lg mb-4">
+            <FaWifi size={48} />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            Oops! Xatolik yuz berdi
+          </h2>
+          <p className="text-gray-600 mb-6 max-w-md">
+            Iltimos, birozdan so‘ng qayta urinib ko‘ring.
+          </p>
+          <button
+            onClick={() => refetch()}
+            className="flex items-center gap-2 bg-red-500 text-white px-6 py-2 rounded-xl shadow hover:bg-red-600 transition cursor-pointer"
+          >
+            <FaSync className="animate-spin-slow" />
+            Qayta urinib ko‘rish
+          </button>
+        </div>
       ) : (
         <div className="overflow-auto max-h-[550px] md:max-h-[60vh]">
           <table className="min-w-full table-auto text-sm whitespace-nowrap">
@@ -202,7 +211,8 @@ const JobTypesPage = () => {
                     <td className="px-2 py-2">
                       {item.isThereTrialPeriod ? "Ha" : "Yo‘q"}
                     </td>
-                    <td className="px-2 py-2 flex gap-3 justify-center">
+                    <td className="px-2 py-2 flex gap-3 justify-center items-center relative">
+                      {/* Edit button */}
                       <button
                         onClick={() => handleEdit(item)}
                         className="text-blue-500 hover:text-blue-700 hover:drop-shadow-xl transition-colors duration-300 cursor-pointer"
@@ -210,13 +220,37 @@ const JobTypesPage = () => {
                       >
                         <FiEdit size={18} />
                       </button>
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        className="text-red-500 hover:text-red-700 hover:drop-shadow-xl transition-colors duration-300 cursor-pointer"
-                        title="O‘chirish"
-                      >
-                        <RiDeleteBin6Line size={18} />
-                      </button>
+
+                      {/* Three dots menu */}
+                      <div className="relative">
+                        <button
+                          onClick={() =>
+                            setOpenMenuId(
+                              openMenuId === item.id ? null : item.id
+                            )
+                          }
+                          className="cursor-pointer text-gray-600 hover:text-black"
+                        >
+                          <BsThreeDotsVertical size={18} />
+                        </button>
+
+                        {openMenuId === item.id && (
+                          <div className="absolute right-0 mt-2 w-44 bg-white shadow-lg rounded-xl border z-20 overflow-hidden">
+                            <button
+                              onClick={() => handleView(item)}
+                              className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer text-gray-700"
+                            >
+                              <FiEye /> To‘liq ko‘rish
+                            </button>
+                            <button
+                              onClick={() => handleDelete(item.id)}
+                              className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-100 cursor-pointer"
+                            >
+                              <RiDeleteBin6Line /> O‘chirish
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -226,7 +260,7 @@ const JobTypesPage = () => {
         </div>
       )}
 
-      {/* Modals */}
+      {/* Form Modal */}
       <JobTypeFormModal
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -237,12 +271,57 @@ const JobTypesPage = () => {
         isEdit={!!editingId}
       />
 
+      {/* Delete Modal */}
       <DeleteModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={() => deleteMutate(deleteId)}
         loading={isDeleting}
       />
+      {/* View Modal */}
+      {isViewModalOpen && selectedItem && (
+        <div
+          className="fixed inset-0 flex items-center justify-center bg-black/20 px-[20px] z-30"
+          onClick={() => setIsViewModalOpen(false)} // tashqi overlay bosilganda yopiladi
+        >
+          <div
+            className="bg-white rounded-xl shadow-lg w-[400px] p-6"
+            onClick={(e) => e.stopPropagation()} // ichki modal bosilganda yopilmasligi uchun
+          >
+            <h2 className="text-lg font-bold mb-4">Ish turi haqida ma'lumot</h2>
+            <p>
+              <strong>ID:</strong> {selectedItem.id}
+            </p>
+            <p>
+              <strong>Nomi (Uz):</strong> {selectedItem.nameUz}
+            </p>
+            <p>
+              <strong>Nomi (Ru):</strong> {selectedItem.nameRu}
+            </p>
+            <p>
+              <strong>Nomi (En):</strong> {selectedItem.nameEn}
+            </p>
+            <p>
+              <strong>Sinov muddati:</strong>{" "}
+              {selectedItem.isThereTrialPeriod ? "Ha" : "Yo‘q"}
+            </p>
+            <p>
+              <strong>Yaratilgan:</strong> {selectedItem.createdDate}
+            </p>
+            <p>
+              <strong>Yangilangan:</strong> {selectedItem.updatedDate}
+            </p>
+            <div className="flex justify-end mt-4">
+              <button
+                onClick={() => setIsViewModalOpen(false)}
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 cursor-pointer"
+              >
+                Yopish
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

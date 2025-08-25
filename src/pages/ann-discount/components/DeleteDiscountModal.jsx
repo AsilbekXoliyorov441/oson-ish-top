@@ -11,7 +11,7 @@ const DeleteDiscountModal = ({ item, typeName, onClose, onDelete }) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center animate-fadeIn"
+      className="fixed z-20 inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center animate-fadeIn"
       onClick={handleBackdropClick}
     >
       <div ref={deleteModalRef} className="bg-white p-6 rounded w-96 shadow-lg">

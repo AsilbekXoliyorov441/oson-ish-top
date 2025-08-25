@@ -1,12 +1,38 @@
-import React from 'react'
-import { FiEdit } from 'react-icons/fi';
-import { RiDeleteBin6Line } from 'react-icons/ri';
+import React, { useState, useRef, useEffect } from "react";
+import { FiEdit, FiEye } from "react-icons/fi";
+import { RiDeleteBin6Line } from "react-icons/ri";
+import { BsThreeDotsVertical } from "react-icons/bs";
 
-const InnerCategoryTable = ({askDelete , openEditModal , items , page , size}) => {
+const InnerCategoryTable = ({
+  askDelete,
+  openEditModal,
+  items,
+  page,
+  size,
+}) => {
+  const [dropdownOpenId, setDropdownOpenId] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const dropdownRef = useRef(null);
+
+  const toggleDropdown = (id) => {
+    setDropdownOpenId(dropdownOpenId === id ? null : id);
+  };
+
+  // tashqariga bosilganda kichik modal yopilsin
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownOpenId(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
     <div className="overflow-auto max-h-[550px] md:max-h-[60vh]">
       <table className="min-w-full table-auto text-sm whitespace-nowrap">
-        <thead className="sticky top-0 bg-white z-10 font-nunito border-b border-dashed border-gray-300">
+        <thead className="top-0 bg-white z-10 font-nunito border-b border-dashed border-gray-300">
           <tr className="text-gray-600 text-left text-sm">
             <th className="px-2 py-2">No</th>
             <th className="px-2 py-2">Nomi</th>
@@ -30,36 +56,121 @@ const InnerCategoryTable = ({askDelete , openEditModal , items , page , size}) =
             items.map((category, idx) => (
               <tr
                 key={category.id}
-                className="hover:bg-gray-200 text-[12px] md:text-[14px]"
+                className="hover:bg-gray-200 text-[12px] md:text-[14px] cursor-pointer"
               >
                 <td className="px-2 py-2">{(page - 1) * size + idx + 1}</td>
                 <td className="px-2 py-2">{category.name}</td>
                 <td className="px-2 py-2">{category.nameUz}</td>
                 <td className="px-2 py-2">{category.nameRu}</td>
                 <td className="px-2 py-2">{category.nameEn}</td>
-                <td className="px-2 py-2 flex gap-3 justify-center">
+                <td
+                  className="px-2 py-2 flex gap-3 justify-center relative"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Edit */}
                   <button
                     onClick={() => openEditModal(category)}
-                    className="text-blue-500 hover:text-blue-700 hover:drop-shadow-xl transition-colors duration-300 cursor-pointer"
+                    className="text-blue-500 hover:text-blue-700 transition-colors duration-300 cursor-pointer"
                     title="Tahrirlash"
                   >
                     <FiEdit size={18} />
                   </button>
+
+                  {/* 3 nuqta */}
                   <button
-                    onClick={() => askDelete(category.id)}
-                    className="text-red-500 hover:text-red-700 hover:drop-shadow-xl transition-colors duration-300 cursor-pointer"
-                    title="O‘chirish"
+                    onClick={() => toggleDropdown(category.id)}
+                    className="p-1 cursor-pointer rounded-full hover:bg-gray-200"
                   >
-                    <RiDeleteBin6Line size={18} />
+                    <BsThreeDotsVertical size={18} />
                   </button>
+
+                  {/* Kichik modal */}
+                  {dropdownOpenId === category.id && (
+                    <div
+                      ref={dropdownRef}
+                      className="absolute right-4 mt-6 w-40 bg-white border rounded-lg shadow-md z-50"
+                    >
+                      <button
+                        onClick={() => {
+                          setSelectedItem(category);
+                          setDropdownOpenId(null);
+                        }}
+                        className="flex cursor-pointer items-center gap-2 px-4 py-2 hover:bg-gray-100 w-full text-left"
+                      >
+                        <FiEye /> To‘liq ko‘rish
+                      </button>
+                      <button
+                        onClick={() => {
+                          askDelete(category.id);
+                          setDropdownOpenId(null);
+                        }}
+                        className="flex cursor-pointer items-center gap-2 px-4 py-2 hover:bg-gray-100 w-full text-left text-red-600"
+                      >
+                        <RiDeleteBin6Line /> O‘chirish
+                      </button>
+                    </div>
+                  )}
                 </td>
               </tr>
             ))
           )}
         </tbody>
       </table>
+
+      {/* Katta modal */}
+      {selectedItem && (
+        <div
+          onClick={() => setSelectedItem(null)}
+          className="fixed inset-0 bg-black/20 px-[20px] flex items-center justify-center z-50"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-xl shadow-lg p-6 w-96"
+          >
+            <h2 className="text-xl font-semibold mb-4">
+              Kategoriya ma’lumotlari
+            </h2>
+            <div className="space-y-2 text-sm">
+              <p>
+                <span className="font-semibold">ID:</span> {selectedItem.id}
+              </p>
+              <p>
+                <span className="font-semibold">Nomi:</span> {selectedItem.name}
+              </p>
+              <p>
+                <span className="font-semibold">Parent ID:</span>{" "}
+                {selectedItem.parentId}
+              </p>
+              <p>
+                <span className="font-semibold">Sarlavha (Uz):</span>{" "}
+                {selectedItem.nameUz}
+              </p>
+              <p>
+                <span className="font-semibold">Sarlavha (Ru):</span>{" "}
+                {selectedItem.nameRu}
+              </p>
+              <p>
+                <span className="font-semibold">Sarlavha (En):</span>{" "}
+                {selectedItem.nameEn}
+              </p>
+              <p>
+                <span className="font-semibold">Yaratilgan sana:</span>{" "}
+                {new Date(selectedItem.createdDate).toLocaleString()}
+              </p>
+            </div>
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => setSelectedItem(null)}
+                className="px-4 cursor-pointer py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              >
+                Yopish
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
-}
+};
 
-export default InnerCategoryTable
+export default InnerCategoryTable;

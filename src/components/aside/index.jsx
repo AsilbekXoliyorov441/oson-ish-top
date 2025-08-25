@@ -1,17 +1,13 @@
 import { NavLink } from "react-router-dom";
-import { FiSettings } from "react-icons/fi";
 import { FaMapLocationDot } from "react-icons/fa6";
 import { GrAnnounce } from "react-icons/gr";
 import { MdOutlinePercent } from "react-icons/md";
 import { PiMapPinSimpleAreaBold } from "react-icons/pi";
 import { BiCategory } from "react-icons/bi";
-import { MdOutlineCategory } from "react-icons/md";
 import { MdOutlineWorkHistory } from "react-icons/md";
 import { RiAdvertisementLine } from "react-icons/ri";
-
-
-
-
+import { PiUsersThreeDuotone } from "react-icons/pi";
+import { SlBriefcase } from "react-icons/sl";
 
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
@@ -44,15 +40,26 @@ export default function Aside({ open }) {
       icon: <GrAnnounce size={20} />,
     },
     {
-      path: "/ann-discount",
-      label: "Chegirmalar",
-      icon: <MdOutlinePercent size={20} />,
-    },
-    {
       path: "/job-types",
       label: "Ishlash turi",
       icon: <MdOutlineWorkHistory size={20} />,
     },
+    {
+      path: "/users",
+      label: "Foydalanuvchilar",
+      icon: <PiUsersThreeDuotone size={20} />,
+    },
+    {
+      path: "/ann-filters",
+      label: "E'lonlar",
+      icon: <SlBriefcase size={20} />,
+    },
+    // {
+    //   path: "/ann-discount",
+    //   label: "Chegirmalar",
+    //   icon: <MdOutlinePercent size={20} />,
+    // },
+
     {
       path: "/advertisement",
       label: "Reklamalar",
@@ -66,7 +73,7 @@ export default function Aside({ open }) {
         open ? "w-[64px]" : "w-[240px]"
       }`}
     >
-      <div className="pt-5">
+      <div className="pt-5 relative z-45">
         <ul className="flex flex-col gap-1 max-h-[85vh] overflow-y-auto px-1">
           {menuItems.map((item) => (
             <li key={item.path}>

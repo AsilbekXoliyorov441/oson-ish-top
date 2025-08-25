@@ -6,6 +6,7 @@ import { RiDeleteBin6Line } from "react-icons/ri";
 import { AiOutlineClose } from "react-icons/ai";
 import { FaWifi } from "react-icons/fa6";
 import { FaSync } from "react-icons/fa";
+import AddsTable from "./components/AddsTable";
 
 // ===== API =====
 const getAds = async ({ queryKey }) => {
@@ -157,15 +158,14 @@ const AdsPage = () => {
   const items = data?.content || [];
 
   // ===== Helper =====
- const isAdActive = (ad) => {
-   if ( ad.fixedDay <= 0) return false; // fixedDay 0 yoki manfiy bo‘lsa inactive
+  const isAdActive = (ad) => {
+    if (ad.fixedDay <= 0) return false; // fixedDay 0 yoki manfiy bo‘lsa inactive
 
-   const created = new Date(ad.createdDate).getTime();
-   const expiresAt = created + ad.fixedDay * 24 * 60 * 60 * 1000;
+    const created = new Date(ad.createdDate).getTime();
+    const expiresAt = created + ad.fixedDay * 24 * 60 * 60 * 1000;
 
-   return Date.now() <= expiresAt;
- };
-
+    return Date.now() <= expiresAt;
+  };
 
   if (isError) {
     return (
@@ -221,84 +221,14 @@ const AdsPage = () => {
           <div className="w-8 h-8 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
         </div>
       ) : (
-        <div className="overflow-auto max-h-[550px] md:max-h-[60vh]">
-          <table className="min-w-full table-auto text-sm whitespace-nowrap">
-            <thead className="sticky top-0 bg-white z-10 border-b border-dashed border-gray-300">
-              <tr className="text-gray-600 text-left text-sm">
-                <th className="px-2 py-2">No</th>
-                <th className="px-2 py-2">Rasm</th>
-                <th className="px-2 py-2">Link</th>
-                <th className="px-2 py-2">Holati</th>
-                <th className="px-2 py-2">Muddati</th>
-                <th className="px-2 py-2">Destination</th>
-                <th className="px-2 py-2">Yaratilgan sana</th>
-                <th className="px-2 py-2 text-center">Boshqarish</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {items.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={8}
-                    className="text-center py-4 text-gray-500 font-medium"
-                  >
-                    Ma'lumot topilmadi
-                  </td>
-                </tr>
-              ) : (
-                items.map((ad, idx) => (
-                  <tr
-                    key={ad.id}
-                    className="hover:bg-gray-200 text-[12px] md:text-[14px]"
-                  >
-                    <td className="px-2 py-2">{(page - 1) * size + idx + 1}</td>
-                    <td className="px-2 py-2">
-                      <img
-                        src={`https://api.osonishtop.uz/api/v1/file/download/${ad.resourcesId}`}
-                        alt="media"
-                        className="w-20 h-20 object-cover rounded cursor-pointer"
-                        onClick={() =>
-                          setSelectedImage(
-                            `https://api.osonishtop.uz/api/v1/file/download/${ad.resourcesId}`
-                          )
-                        }
-                      />
-                    </td>
-                    <td className="px-2 py-2">{ad.link || "-"}</td>
-                    <td
-                      className={`px-2 py-2 font-semibold ${
-                        isAdActive(ad) ? "text-green-600" : "text-red-600"
-                      }`}
-                    >
-                      {isAdActive(ad) ? "Active" : "Inactive"}
-                    </td>
-                    <td className="px-2 py-2">{ad.fixedDay || 0}</td>
-                    <td className="px-2 py-2">
-                      {ad.destination ? "✅" : "❌"}
-                    </td>
-                    <td className="px-2 py-2">
-                      {new Date(ad.createdDate).toLocaleDateString()}
-                    </td>
-                    <td className="px-2 py-2 flex gap-3 justify-center">
-                      <button
-                        onClick={() => handleEdit(ad)}
-                        className="text-blue-500 hover:text-blue-700 cursor-pointer"
-                      >
-                        <FiEdit size={18} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(ad.id)}
-                        className="text-red-500 hover:text-red-700 cursor-pointer"
-                      >
-                        <RiDeleteBin6Line size={18} />
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+        <AddsTable
+          items={items}
+          page={page}
+          size={size}
+          handleDelete={handleDelete}
+          handleEdit={handleEdit}
+          isAdActive={isAdActive}
+        />
       )}
 
       {/* Pagination */}

@@ -1,13 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { FiEdit } from "react-icons/fi";
+import { FiEdit, FiEye } from "react-icons/fi";
 import { RiDeleteBin6Line } from "react-icons/ri";
+import { BsThreeDotsVertical } from "react-icons/bs";
 
 import axiosInstance from "../../api/axiosInstance";
 import RegionFormModal from "./components/add-edit-modal";
 import DeleteConfirmModal from "./components/delete-modal";
 import { toast } from "react-toastify";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { FaSync } from "react-icons/fa";
 import { FaWifi } from "react-icons/fa6";
 
@@ -86,6 +87,11 @@ const Region = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState(null);
 
+  // 🔹 yangi state — dropdown va katta modal
+  const [dropdownOpenId, setDropdownOpenId] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const dropdownRef = useRef(null);
+
   const navigate = useNavigate();
 
   const {
@@ -138,11 +144,26 @@ const Region = () => {
     if (e.key === "Enter") setSearchTerm(search);
   };
 
-  if (isLoading) return (
-    <div className="flex items-center justify-center w-full h-full">
-      <div className="w-8 h-8 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
-    </div>
-  );
+  const toggleDropdown = (id) => {
+    setDropdownOpenId(dropdownOpenId === id ? null : id);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownOpenId(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  if (isLoading)
+    return (
+      <div className="flex items-center justify-center w-full h-full">
+        <div className="w-8 h-8 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+      </div>
+    );
 
   if (isError) {
     return (
@@ -157,7 +178,7 @@ const Region = () => {
           Iltimos, birozdan so‘ng qayta urinib ko‘ring.
         </p>
         <button
-          onClick={() => refetch()} // qayta so‘rov yuborish uchun (React Query bo‘lsa)
+          onClick={() => refetch()}
           className="flex items-center gap-2 bg-red-500 text-white px-6 py-2 rounded-xl shadow hover:bg-red-600 transition"
         >
           <FaSync className="animate-spin-slow" />
@@ -166,7 +187,6 @@ const Region = () => {
       </div>
     );
   }
-    
 
   return (
     <div className="bg-white overflow-hidden rounded-xl p-4">
@@ -245,25 +265,52 @@ const Region = () => {
                   <td className="px-2 py-2">{region.nameUz}</td>
                   <td className="px-2 py-2">{region.nameEn}</td>
                   <td className="px-2 py-2">{region.nameRu}</td>
-                  <td className="px-2 py-2 flex gap-2">
+                  <td
+                    className="px-2 py-2 flex gap-2 justify-center relative"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {/* Edit */}
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEdit(region);
-                      }}
-                      className="text-blue-500  hover:text-blue-700  hover:drop-shadow-xl drop-shadow-blue-700 transition-colors duration-300 cursor-pointer"
+                      onClick={() => handleEdit(region)}
+                      className="text-blue-500 hover:text-blue-700 transition-colors duration-300 cursor-pointer"
                     >
                       <FiEdit size={20} />
                     </button>
+
+                    {/* 3 nuqta */}
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setDeleteConfirm(region.id);
-                      }}
-                      className="text-red-500  hover:text-red-700  hover:drop-shadow-xl drop-shadow-red-700 transition-colors duration-300 cursor-pointer"
+                      onClick={() => toggleDropdown(region.id)}
+                      className="p-1 cursor-pointer rounded-full hover:bg-gray-200"
                     >
-                      <RiDeleteBin6Line size={20} />
+                      <BsThreeDotsVertical size={18} />
                     </button>
+
+                    {/* Kichik modal */}
+                    {dropdownOpenId === region.id && (
+                      <div
+                        ref={dropdownRef}
+                        className="absolute  right-4 mt-6 w-44 bg-white border rounded-lg shadow-md z-50"
+                      >
+                        <button
+                          onClick={() => {
+                            setSelectedItem(region);
+                            setDropdownOpenId(null);
+                          }}
+                          className="flex cursor-pointer items-center gap-2 px-4 py-2 hover:bg-gray-100 w-full text-left"
+                        >
+                          <FiEye /> To‘liq ko‘rish
+                        </button>
+                        <button
+                          onClick={() => {
+                            setDeleteConfirm(region.id);
+                            setDropdownOpenId(null);
+                          }}
+                          className="flex cursor-pointer  items-center gap-2 px-4 py-2 hover:bg-gray-100 w-full text-left text-red-600"
+                        >
+                          <RiDeleteBin6Line /> O‘chirish
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))
@@ -280,6 +327,53 @@ const Region = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Katta modal */}
+      {selectedItem && (
+        <div
+          onClick={() => setSelectedItem(null)}
+          className="fixed inset-0 bg-black/10 px-[20px] flex items-center justify-center z-50"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-xl shadow-lg p-6 w-96"
+          >
+            <h2 className="text-xl font-semibold mb-4">Hudud ma’lumotlari</h2>
+            <div className="space-y-2 text-sm">
+              <p>
+                <span className="font-semibold">ID:</span> {selectedItem.id}
+              </p>
+              <p>
+                <span className="font-semibold">Nomi:</span> {selectedItem.name}
+              </p>
+              <p>
+                <span className="font-semibold">Hudud (Uz):</span>{" "}
+                {selectedItem.nameUz}
+              </p>
+              <p>
+                <span className="font-semibold">Hudud (En):</span>{" "}
+                {selectedItem.nameEn}
+              </p>
+              <p>
+                <span className="font-semibold">Hudud (Ru):</span>{" "}
+                {selectedItem.nameRu}
+              </p>
+              <p>
+                <span className="font-semibold">Yaratilgan:</span>{" "}
+                {new Date(selectedItem.createdDate).toLocaleString()}
+              </p>
+            </div>
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => setSelectedItem(null)}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              >
+                Yopish
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

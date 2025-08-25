@@ -2,7 +2,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:3000", // o'zingning backend manzilingni qo'y
+  baseURL: "https://api.osonishtop.uz", // o'zingning backend manzilingni qo'y
   headers: {
     "Content-Type": "application/json",
   },

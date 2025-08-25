@@ -17,7 +17,7 @@ const AddEditDiscountModal = ({
 
   return (
     <div
-      className="fixed inset-0 bg-black/10 backdrop-blur-sm z-10 flex items-center justify-center animate-fadeIn"
+      className="fixed px-[20px] inset-0 bg-black/10 backdrop-blur-sm z-10 flex items-center justify-center animate-fadeIn"
       onClick={handleBackdropClick}
     >
       <form

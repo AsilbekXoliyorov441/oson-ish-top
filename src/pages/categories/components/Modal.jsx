@@ -4,7 +4,7 @@ const Modal = memo(({ isOpen, onClose, children, maxWidth = "max-w-md" }) => {
   if (!isOpen) return null;
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center z-50"
+      className="fixed  px-[20px] inset-0 flex items-center justify-center z-50"
       onClick={onClose}
     >
       <div className="absolute inset-0 backdrop-blur-sm bg-black/10"></div>

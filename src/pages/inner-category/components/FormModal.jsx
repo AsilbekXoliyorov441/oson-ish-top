@@ -10,7 +10,7 @@ const FormModal = ({
   if (!open) return null;
   return (
     <div
-      className=" outline-none fixed inset-0 z-50 flex items-center justify-center"
+      className=" outline-none px-[20px] fixed inset-0 z-50 flex items-center justify-center"
       onClick={onClose}
     >
       <div className=" outline-none absolute inset-0 bg-black/10 backdrop-blur-sm" />

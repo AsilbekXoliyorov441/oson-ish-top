@@ -1,4 +1,7 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { BsThreeDotsVertical } from "react-icons/bs";
+import { FiEdit, FiEye } from "react-icons/fi";
+import { RiDeleteBin6Line } from "react-icons/ri";
 
 const typeColors = {
   1: "bg-blue-100 text-blue-800",
@@ -13,22 +16,38 @@ const AnnouncementDiscountTable = ({
   page,
   size,
   loadingId,
-  edit,
-  delate,
   onEdit,
   onDelete,
-
 }) => {
+  const [dropdownOpenId, setDropdownOpenId] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const dropdownRef = useRef(null);
+
+  const toggleDropdown = (id) => {
+    setDropdownOpenId(dropdownOpenId === id ? null : id);
+  };
+
+  // tashqi bosilganda kichik modalni yopish
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownOpenId(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
-    <div className="overflow-auto max-h-[550px]">
+    <div className="overflow-auto max-h-[550px] relative">
       <table className="min-w-full table-auto text-sm border-separate border-spacing-y-1">
-        <thead className="sticky top-0 bg-white">
+        <thead className="bg-white">
           <tr className="bg-gray-100">
-            <th className="p-3 text-left">No</th>
-            <th className="p-3 text-left">Turi</th>
-            <th className="p-3 text-left">Kuni</th>
-            <th className="p-3 text-left">Chegirma (%)</th>
-            <th className="p-3 text-left">Boshqarish</th>
+            <th className="p-3 text-left whitespace-nowrap">No</th>
+            <th className="p-3 text-left whitespace-nowrap">Turi</th>
+            <th className="p-3 text-left whitespace-nowrap">Kuni</th>
+            <th className="p-3 text-left whitespace-nowrap">Chegirma (%)</th>
+            <th className="p-3 text-left whitespace-nowrap">Boshqarish</th>
           </tr>
         </thead>
         <tbody>
@@ -38,7 +57,10 @@ const AnnouncementDiscountTable = ({
               typeColors[item.annTypesId] || typeColors.default;
 
             return (
-              <tr key={item.id} className="hover:bg-gray-50 rounded-lg">
+              <tr
+                key={item.id}
+                className="hover:bg-gray-50 rounded-lg relative"
+              >
                 <td className="p-3">{idx + 1 + (page - 1) * size}</td>
                 <td className="p-3">
                   <span className={`px-2 py-1 rounded ${colorClass}`}>
@@ -53,25 +75,100 @@ const AnnouncementDiscountTable = ({
                     `${item.discount}%`
                   )}
                 </td>
-                <td className="p-3 flex gap-3">
+                <td className="p-3 flex gap-1 relative">
                   <button
-                    onClick={() => onEdit(item)}
-                    className="text-blue-500  hover:text-blue-700  hover:drop-shadow-xl drop-shadow-blue-700 transition-colors duration-300 cursor-pointer"
+                    onClick={() => {
+                      onEdit(item);
+                      setDropdownOpenId(null);
+                    }}
+                    className="flex items-center cursor-pointer gap-2 px-4 py-2 hover:bg-gray-100  text-left"
                   >
-                    {edit}
+                    <FiEdit size={18} />
                   </button>
                   <button
-                    onClick={() => onDelete(item.id)}
-                    className="text-red-500  hover:text-red-700  hover:drop-shadow-xl drop-shadow-red-700 transition-colors duration-300 cursor-pointer"
+                    onClick={() => toggleDropdown(item.id)}
+                    className="p-2 rounded-full cursor-pointer hover:bg-gray-200"
                   >
-                    {delate}
+                    <BsThreeDotsVertical size={18} />
                   </button>
+
+                  {dropdownOpenId === item.id && (
+                    <div
+                      ref={dropdownRef}
+                      className="absolute right-4 mt-2 w-40 bg-white border rounded-lg shadow-md z-50"
+                    >
+                      <button
+                        onClick={() => {
+                          setSelectedItem(item);
+                          setDropdownOpenId(null);
+                        }}
+                        className="flex items-center cursor-pointer gap-2 px-4 py-2 hover:bg-gray-100 w-full text-left"
+                      >
+                        <FiEye /> To‘liq ko‘rish
+                      </button>
+                      <button
+                        onClick={() => {
+                          onDelete(item.id);
+                          setDropdownOpenId(null);
+                        }}
+                        className="flex items-center cursor-pointer gap-2 px-4 py-2 hover:bg-gray-100 w-full text-left text-red-600"
+                      >
+                        <RiDeleteBin6Line /> O‘chirish
+                      </button>
+                    </div>
+                  )}
                 </td>
               </tr>
             );
           })}
         </tbody>
       </table>
+
+      {/* Modal - To‘liq ko‘rish */}
+      {selectedItem && (
+        <div
+          onClick={() => setSelectedItem(null)}
+          className="fixed inset-0 bg-black/20 px-[20px] flex items-center justify-center z-50"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-xl shadow-lg p-6 w-96"
+          >
+            <h2 className="text-xl font-semibold mb-4">
+              Chegirma ma’lumotlari
+            </h2>
+            <div className="space-y-2 text-sm">
+              <p>
+                <span className="font-semibold">ID:</span> {selectedItem.id}
+              </p>
+              <p>
+                <span className="font-semibold">Turi ID:</span>{" "}
+                {selectedItem.annTypesId}
+              </p>
+              <p>
+                <span className="font-semibold">Yaratilgan sana:</span>{" "}
+                {new Date(selectedItem.createdDate).toLocaleString()}
+              </p>
+              <p>
+                <span className="font-semibold">Kuni:</span>{" "}
+                {selectedItem.fixedDay} kun
+              </p>
+              <p>
+                <span className="font-semibold">Chegirma:</span>{" "}
+                {selectedItem.discount}%
+              </p>
+            </div>
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => setSelectedItem(null)}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              >
+                Yopish
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
