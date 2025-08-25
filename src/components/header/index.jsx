@@ -10,7 +10,7 @@ export default function Header() {
   };
 
   return (
-    <header className="fixed  top-0 w-full flex justify-between items-center px-4 py-3 h-[70px] bg-white shadow">
+    <header className="fixed z-1 top-0 w-full flex justify-between items-center px-4 py-3 h-[70px] bg-white shadow">
       <h1 className="text-xl font-bold text-blue-600">Admin Panel</h1>
       <button
         onClick={handleLogout}
